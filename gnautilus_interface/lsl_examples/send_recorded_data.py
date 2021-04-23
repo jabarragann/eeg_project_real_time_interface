@@ -20,12 +20,15 @@ def renameChannels(chName):
 if __name__ == '__main__':
 
     #Read eeg file
+    srcPath = Path(r"C:\Users\asus\OneDrive - purdue.edu\RealtimeProject\Experiments3-Data\CalibrationProcedure-NeedlePasssingBlood\edf\JuanValidation")
+    file = srcPath / "UJuan_S01_T01_BloodValidation_raw.edf"
+
     # srcPath = Path(r'C:\Users\asus\OneDrive - purdue.edu\RealtimeProject\Experiments3-Data\TestsWithVideo\Eyes-open-close-test\edf').resolve()
     # file = srcPath / "UJuan_S03_T01_Eyes-open-close_raw.edf"
     # srcPath = Path('./../deep_models/raw-data').resolve()
     # file = srcPath / "Juan_S04_T01_Low_raw.edf"
-    srcPath = Path(r'C:\Users\asus\OneDrive - purdue.edu\RealtimeProject\Experiments3-Data\VeinLigationSimulator-Tests\Jing\11-17-20\edf').resolve()
-    file = srcPath / "UJing_S03_T03_VeinLigationBlood_raw.edf"
+    # srcPath = Path(r'C:\Users\asus\OneDrive - purdue.edu\RealtimeProject\Experiments3-Data\VeinLigationSimulator-Tests\Jing\11-17-20\edf').resolve()
+    # file = srcPath / "UJing_S03_T03_VeinLigationBlood_raw.edf"
     #Load data
     raw = mne.io.read_raw_edf(file, preload=True)
     rawArray = raw.get_data(picks=['eeg'])

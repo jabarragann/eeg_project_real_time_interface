@@ -11,9 +11,20 @@ from pylsl import StreamInlet, resolve_stream
 import yasa
 from scipy.signal import welch
 import pickle
+from pylsl import StreamInfo, StreamOutlet
+
+class RecordEventInLSL:
+
+    def __init__(self):
+        self.pred_info = StreamInfo('PredictionEvents', 'predictions', 1, 0, 'float32', 'PredictionEvents43536')
+        self.pred_outlet = StreamOutlet(self.pred_info)
+    def record_event(self, data):
+        self.pred_outlet.push_sample([data])
 
 class lstm_predictor:
     def __init__(self, model_path, lstm_model_name, EEG_CHANNELS, POWER_BANDS):
+        self.lslSender = RecordEventInLSL()
+
         #Load model and configuration
         self.predictionModel = load_model(model_path / '{:}.h5'.format(lstm_model_name))
         self.normalization_dict = pickle.load(open(model_path / '{:}_normalizer.pickle'.format(lstm_model_name), 'rb'))
@@ -62,13 +73,13 @@ class lstm_predictor:
         ##Calculate Features##
         ######################
         # Check that data is in the correct range
-        check_units = [0.2 < abs(self.dataBuffer[-2*self.chunk_size:, 2].min()) < 800,
-                        1 < abs(self.dataBuffer[-2*self.chunk_size:, 7].max()) < 800,
-                        0.2 < abs(self.dataBuffer[-2*self.chunk_size:, 15].min()) < 800]
-        assert all(check_units), \
-            "Check the units of the data that is about to be process. " \
-            "Data should be given as uv to the get bandpower coefficients function" \
-            + str(check_units)
+        # check_units = [0.2 < abs(self.dataBuffer[-2*self.chunk_size:, 2].min()) < 800,
+        #                 1 < abs(self.dataBuffer[-2*self.chunk_size:, 7].max()) < 800,
+        #                 0.2 < abs(self.dataBuffer[-2*self.chunk_size:, 15].min()) < 800]
+        # assert all(check_units), \
+        #     "Check the units of the data that is about to be process. " \
+        #     "Data should be given as uv to the get bandpower coefficients function" \
+        #     + str(check_units)
 
         # Get bandPower coefficients
         win_sec = 0.95
@@ -88,9 +99,10 @@ class lstm_predictor:
         prediction = self.predictionModel.predict(normalSequence)
         prediction = prediction[0, 1]
 
-        predicted_label = 1 if prediction > 0.5 else 0
+        # predicted_label = 1 if prediction > 0.5 else 0
 
         # print("prediction scores:", prediction, "label: ", predicted_label)
+        self.lslSender.record_event(prediction)
 
         return prediction
 
@@ -121,8 +133,13 @@ class DataProducer(Thread):
 
         # #LSTM model and configurations
         # self.predictor = lstm_predictor(Path('./models/eyes_detector_model'),'simple_lstm_seq5_eyes', self.USED_EEG_CHANNELS,self.POWER_BANDS)
-        self.predictor = lstm_predictor(Path('./models/jing_model_peg_knot'),'simple_lstm_seq15_peg-vs-knot-test-1-3', self.USED_EEG_CHANNELS,self.POWER_BANDS)
-
+        # self.predictor = lstm_predictor(Path('./models/jing_model_peg_knot'),'simple_lstm_seq15_peg-vs-knot-test-1-3', self.USED_EEG_CHANNELS,self.POWER_BANDS)
+        # self.predictor = lstm_predictor(Path('./models/juan_model_peg_knot'), 'simple_lstm_seq20_juan-peg-vs-knot-test-4-6', self.USED_EEG_CHANNELS, self.POWER_BANDS)
+        # self.predictor = lstm_predictor(Path('./models/keyu_model_peg_knot'), 'simple_lstm_seq20_keyu-peg-vs-knot-test-4-6', self.USED_EEG_CHANNELS, self.POWER_BANDS)
+        # self.predictor = lstm_predictor(Path('./models/ben_model_peg_knot'), 'simple_lstm_seq20_ben-peg-vs-knot-test-4-6', self.USED_EEG_CHANNELS, self.POWER_BANDS)
+        # self.predictor = lstm_predictor(Path('./models/jing_model_needle_blood'), 'simple_lstm_seq25_Jing-needle-vs-needleBleeding-test-4-6', self.USED_EEG_CHANNELS, self.POWER_BANDS)
+        # self.predictor = lstm_predictor(Path('./models/juan_model_needle_grasping'), 'simple_lstm_seq10_Juan-needle-vs-needlegrasping-test-4-6', self.USED_EEG_CHANNELS, self.POWER_BANDS)
+        self.predictor = lstm_predictor(Path('./models/juan_model_needle_blood_last_try'), 'simple_lstm_seq25_Juan-needle-vs-needleBlood-last-try', self.USED_EEG_CHANNELS, self.POWER_BANDS)
 
         # self.predictionModel = None
         # self.timesteps = 2
@@ -201,7 +218,7 @@ class DataProducer(Thread):
                 # predicted_label = self.sineSignal(t)
 
                 # Send prediction for plotting
-                print('time', t, 'prediction', prediction, 'label', predicted_label)
+                # print('time', t, 'prediction', prediction, 'label', predicted_label)
                 self.data_queue.put_nowait({'time': t, 'data': prediction, 'smooth': smooth_label})
 
                 #Update alarm deque
@@ -214,6 +231,7 @@ class DataProducer(Thread):
             print(ex)
             print(traceback.format_exc())
         finally:
+            self.controller.running=False
             print("Closing data producer")
 
     @staticmethod

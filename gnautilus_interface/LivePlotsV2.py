@@ -16,6 +16,8 @@ class LivePlotLogic:
         self.prediction_line = line[0]
         self.smoothed_line = line[1]
         self.threshold_line = line[2]
+        self.alarm_line = line[3]
+        self.threshold_line_down = line[4]
 
         self.ax = axe
         self.workload_label = workload_label
@@ -30,7 +32,9 @@ class LivePlotLogic:
         size = 80
         self.y1 = np.zeros(size)
         self.y2 = np.zeros(size)
-        self.y3 = np.ones(size) * self.controller.detection_threshold
+        self.y3 = np.ones(size) * self.controller.detection_threshold_up
+        self.y4 = np.ones(size) * self.controller.alarm_deque_mean
+        self.y5 = np.ones(size) * self.controller.detection_threshold_down
         self.x1 = np.linspace(-10.0, 0.0, size)
 
         self.init_time = time.time()
@@ -47,7 +51,7 @@ class LivePlotLogic:
         if isThereNewData:
             #Print update rate
             d = time.time() - self.animation_init_time
-            print("Update rate: {:08.4f}ms".format(d * 1000))
+            # print("[LivePlotLogic] Update rate: {:08.4f}ms".format(d * 1000))
             self.animation_init_time = time.time()
 
             # Get Last Sample
@@ -66,6 +70,7 @@ class LivePlotLogic:
             self.y2 = np.roll(self.y2, -1)
             self.y1[-1] = new_y1
             self.y2[-1] = new_y2
+            alarm_mean = self.controller.alarm_deque_mean
 
             # Get and update label color
             new_color = self.calculate_new_color(new_y2)
@@ -75,6 +80,7 @@ class LivePlotLogic:
             # Update artists data
             self.prediction_line.set_data(self.x1, self.y1)
             self.smoothed_line.set_data(self.x1, self.y2)
+            self.alarm_line.set_data(self.x1,np.zeros_like(self.y1)+alarm_mean)
 
             # Reset init time
             self.init_time = time.time()
@@ -82,7 +88,7 @@ class LivePlotLogic:
         else:
             pass
 
-        return self.prediction_line, self.smoothed_line
+        return self.prediction_line, self.smoothed_line, self.alarm_line
 
     def init_animation(self):
 
@@ -93,6 +99,9 @@ class LivePlotLogic:
         self.prediction_line.set_data(self.x1,self.y1)
         self.smoothed_line.set_data(self.x1,self.y2)
         self.threshold_line.set_data(self.x1,self.y3)
+        self.alarm_line.set_data(self.x1, self.y4)
+        self.threshold_line_down.set_data(self.x1, self.y5)
+
         return self.prediction_line, self.smoothed_line
 
     def check_data_queue(self):
@@ -142,15 +151,20 @@ class LivePlots:
         #Create data line
         self.smoothed_line = Line2D( [],[], marker='o',markersize=4,linestyle='-', linewidth=1.0, label='Prediction', color='black')
         self.prediction_line = Line2D([],[], marker='*', markersize=3, linestyle='-', linewidth=0.5, label='Prediction', color='gray')
-        self.threshold_line = Line2D([],[],linestyle='--', linewidth=1.5, label='Prediction', color='blue')
-
+        self.threshold_line_up = Line2D([],[],linestyle='--', linewidth=1.5, label='Prediction', color='blue')
+        self.threshold_line_down = Line2D([], [], linestyle='--', linewidth=1.5, label='Prediction', color='blue')
+        self.alarm_line = Line2D([], [], linestyle='--', linewidth=1.5, label='Prediction', color='red', markersize=10)
 
         self.ax.add_line(self.prediction_line)
         self.ax.add_line(self.smoothed_line)
-        self.ax.add_line(self.threshold_line)
+        self.ax.add_line(self.threshold_line_up)
+        self.ax.add_line(self.threshold_line_down)
+        self.ax.add_line(self.alarm_line)
 
         #Create animation logic and animation
-        self.logic = LivePlotLogic(controller, axe = self.ax, line = [self.prediction_line, self.smoothed_line, self.threshold_line],
+        self.logic = LivePlotLogic(controller, axe = self.ax,
+                                   line = [self.prediction_line, self.smoothed_line, self.threshold_line_up,
+                                           self.alarm_line, self.threshold_line_down],
                                    maxt = self.x_max_lim, workload_label = self.label1)
 
         self.ani = animation.FuncAnimation(self.figure,
