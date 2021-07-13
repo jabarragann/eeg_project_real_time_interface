@@ -43,7 +43,7 @@ if __name__ == '__main__':
         print(file.name)
         raw = mne.io.read_raw_edf(file, preload=True)
         raw.drop_channels(['PO7','PO8'])
-        raw = raw.pick(channelsSubset)
+        # raw = raw.pick(channelsSubset)
         rawArray = raw.get_data(picks=['eeg'])
 
         #Rename Channel

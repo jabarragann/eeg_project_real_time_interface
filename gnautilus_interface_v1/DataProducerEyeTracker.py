@@ -12,7 +12,7 @@ import yasa
 from scipy.signal import welch
 import pickle
 from pylsl import StreamInfo, StreamOutlet,resolve_byprop
-from gnautilus_interface.sensor_utils.eye_tracker_utils import create_eye_tracker_features
+from gnautilus_interface_v1.sensor_utils.eye_tracker_utils import create_eye_tracker_features
 
 class RecordEventInLSL:
     def __init__(self):

@@ -14,12 +14,12 @@ def write_read(x):
     return data.decode('ascii')
 
 if __name__ == '__main__':
-    while True:
-        num = input("Enter a number: ") # Taking input from user
-        value = write_read(num)
-        print(value) # printing the value
+    # while True:
+    #     num = input("Enter a number: ") # Taking input from user
+    #     value = write_read(num)
+    #     print(value) # printing the value
     # time.sleep(2)
-    # for i in range(10):
-    #     val = write_read(str(i%2))
-    #     print(i, val)
-    #     time.sleep(1)
+    for i in range(10):
+        val = write_read(str(i%2))
+        print(i, val)
+        time.sleep(1)

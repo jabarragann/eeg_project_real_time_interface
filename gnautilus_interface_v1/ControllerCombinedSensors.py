@@ -1,9 +1,9 @@
 from tkinter import Tk
-from gnautilus_interface.DataProducerEyeTracker import DataProducer
-from gnautilus_interface.LivePlotsV2 import LivePlots
-from gnautilus_interface.AlarmModule import AlarmModule, FeedbackModule
-from gnautilus_interface.OddballModule import OddBallModule
-from gnautilus_interface.SuctionAssistantModule import SuctionAssistantModule
+from gnautilus_interface_v1.DataProducerEyeTracker import DataProducer
+from gnautilus_interface_v1.LivePlotsV2 import LivePlots
+from gnautilus_interface_v1.AlarmModule import AlarmModule, FeedbackModule
+from gnautilus_interface_v1.OddballModule import OddBallModule
+from gnautilus_interface_v1.SuctionAssistantModule import SuctionAssistantModule
 import queue
 from collections import deque
 import numpy as np

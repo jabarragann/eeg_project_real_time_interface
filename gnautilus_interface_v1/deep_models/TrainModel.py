@@ -1,4 +1,4 @@
-from gnautilus_interface.deep_models import LoadData
+from gnautilus_interface_v1.deep_models import LoadData
 from tensorflow import keras
 from tensorflow.keras.layers import Dense, Input, BatchNormalization, Dropout, Softmax, LSTM
 from tensorflow.keras.models import Model
@@ -29,9 +29,9 @@ def createModel2(timesteps,features):
 if __name__ == '__main__':
     epsilon =1e-8
     timesteps = 2
-    features = 50
-    dataset = LoadData.Dataset(timesteps=timesteps, dataPath =Path("./freq-data/only10ChannelsSmallWindows"))
-    # dataset = LoadData.Dataset(timesteps=timesteps, dataPath =Path("./freq-data/allChannels"))
+    features = 150
+    # dataset = LoadData.Dataset(timesteps=timesteps, dataPath =Path("./freq-data/only10ChannelsSmallWindows"))
+    dataset = LoadData.Dataset(timesteps=timesteps, dataPath =Path("./freq-data/allChannelsSmallWindows"))
 
     trainX, trainY, testX, testY = dataset.trainX, dataset.trainY, dataset.testX, dataset.testY
 
